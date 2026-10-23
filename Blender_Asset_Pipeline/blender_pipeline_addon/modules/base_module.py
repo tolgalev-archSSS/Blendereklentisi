@@ -37,7 +37,7 @@ class PipelineModule:
         # Varsayilan: hicbir sey yapma, altyapi hazir mesajini don
         print("[ASSET-PIPELINE] Modul tetiklendi: %s -> obje: %s" % (self.name, obj.name))
         return {
-            "status": "success",
+            "status": "ok",
             "message": "Modul altyapisi hazir. Faz 2 kodu buraya entegre edilecek.",
             "module": self.name,
             "object": obj.name,
@@ -66,7 +66,7 @@ def mesh_repair(module, params):
         return {"status": "error", "message": err}
     print("[ASSET-PIPELINE] mesh_repair tetiklendi -> %s" % obj.name)
     return {
-        "status": "success",
+        "status": "ok",
         "message": "Modul altyapisi hazir. Faz 2 kodu buraya entegre edilecek. (mesh_repair)",
         "module": "mesh_repair",
         "object": obj.name,
@@ -80,7 +80,7 @@ def decimate_poly(module, params):
     ratio = float(params.get("ratio", 0.5))
     print("[ASSET-PIPELINE] decimate_poly tetiklendi -> %s (ratio=%s)" % (obj.name, ratio))
     return {
-        "status": "success",
+        "status": "ok",
         "message": "Modul altyapisi hazir. Faz 2 kodu buraya entegre edilecek. (decimate_poly)",
         "module": "decimate_poly",
         "object": obj.name,
@@ -93,7 +93,7 @@ def bake_normal(module, params):
         return {"status": "error", "message": err}
     print("[ASSET-PIPELINE] bake_normal tetiklendi -> %s" % obj.name)
     return {
-        "status": "success",
+        "status": "ok",
         "message": "Modul altyapisi hazir. Faz 2 kodu buraya entegre edilecek. (bake_normal)",
         "module": "bake_normal",
         "object": obj.name,

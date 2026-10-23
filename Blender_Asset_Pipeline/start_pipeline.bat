@@ -1,16 +1,15 @@
-# =====================================================================
-# start_pipeline.bat - Tek tikla baslatma (Windows)
-#  1. Gerekli klasorleri kontrol eder/olusturur
-#  2. Eski/cakisan sunucuyu temizler:
-#     - Port 8123 ve 9876/9877'yi kullanan BLENDER oturumlarini kapatir
-#       ("Model v2.5 / MLAO" eklentisi 9876-9877 portlarindan yayin yapiyordu;
-#        sadece Blender processleri kill'lenir, baska hicbir sey oldurulmez.)
-#  3. blender.exe'yi otomatik bulur (where -> Program Files taramasi)
-#  4. blender.exe --python autostart_blender.py ile baslatir
-#     (Tarayici http://127.0.0.1:8123 adresini kendiliginden acar.)
-# =====================================================================
 @echo off
-chcp 65001 >nul
+REM =====================================================================
+REM start_pipeline.bat - Tek tikla baslatma (Windows)
+REM  1. Gerekli klasorleri kontrol eder/olusturur
+REM  2. Eski/cakisan sunucuyu temizler:
+REM     - Port 8123 ve 9876/9877'yi kullanan BLENDER oturumlarini kapatir
+REM       ("Model v2.5 / MLAO" eklentisi 9876-9877 portlarindan yayin yapiyordu;
+REM        sadece Blender processleri kill'lenir, baska hicbir sey oldurulmez.)
+REM  3. blender.exe'yi otomatik bulur (where -> Program Files taramasi)
+REM  4. blender.exe --python autostart_blender.py ile baslatir
+REM     (Tarayici http://127.0.0.1:8123 adresini kendiliginden acar.)
+REM =====================================================================
 setlocal EnableDelayedExpansion
 
 title Asset Pipeline - Baslatma
@@ -32,8 +31,9 @@ REM ---------- 2) Cakisan eski oturumlari/sunuculari temizle ----------
 echo [TEMIZLIK] Port 8123 / 9876 / 9877 dinleyen Blender islemleri kontrol ediliyor...
 
 for %%P in (8123 9876 9877) do (
-    for /f "tokens=5" %%A in ('netstat -ano ^| findstr /r ":%%P .*LISTENING"') do (
-        for /f "tokens=1 delims=" %%N in ('tasklist /fi "PID eq %%A" /nh 2^>nul ^| findstr /i "blender"') do (
+    for /f "tokens=5" %%A in ('netstat -ano ^| findstr /c:":%%P " ^| findstr /i "LISTENING"') do (
+        tasklist /fi "PID eq %%A" /nh 2^>nul ^| findstr /i "blender" >nul 2>&1
+        if !errorlevel!==0 (
             echo   - Port %%P uzerindeki Blender PID %%A kapatiliyor...
             taskkill /f /pid %%A >nul 2>&1
         )
@@ -81,9 +81,9 @@ start "" "%BLENDER_EXE%" --python "%~dp0autostart_blender.py"
 
 echo.
 echo ====================================================
-echo   Blender açılıyor... Tarayıcı birazdan
+echo   Blender aciliyor... Tarayici birazdan
 echo   http://127.0.0.1:8123 adresini kendiliginden acar.
-echo   (Eger acmazsa N Paneli > Asset Pipeline > Web Arayuzunu Ac)
+echo   (Eger acmazsa N Paneli ^> Asset Pipeline ^> Web Arayuzunu Ac)
 echo ====================================================
 echo   Bu pencere 10 saniye icinde otomatik kapanacak.
 echo ====================================================
