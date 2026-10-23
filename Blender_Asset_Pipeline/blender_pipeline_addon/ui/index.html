@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asset Pipeline - 11 Haneli Kodlama Paneli</title>
+<style>
+/* ============ Blender Dark UI Tema ============ */
+:root{
+  --bg:#18181b; --panel:#27272a; --panel2:#3f3f46; --border:#3f3f46;
+  --accent:#f97316; --accent2:#3b82f6; --text:#e4e4e7; --muted:#a1a1aa;
+  --ok:#22c55e; --err:#ef4444; --mono:'Consolas','Cascadia Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px}
+header{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--panel);border-bottom:1px solid var(--border)}
+header h1{font-size:17px;font-weight:600}
+header .ver{color:var(--muted);font-size:12px}
+header .spacer{flex:1}
+#port-badge{background:var(--panel2);padding:4px 10px;border-radius:6px;font-size:12px;color:var(--muted)}
+main{display:grid;grid-template-columns:300px 1fr 340px;gap:14px;padding:14px;align-items:start}
+.col{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.led{width:11px;height:11px;border-radius:50%;background:var(--err);box-shadow:0 0 6px var(--err);transition:.3s}
+.led.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.small{font-size:12px;color:var(--muted)}
+button{cursor:pointer;border:1px solid var(--border);background:var(--panel2);color:var(--text);padding:8px 12px;border-radius:7px;font-size:13px;transition:.15s}
+button:hover{border-color:var(--accent2);background:#52525b}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.primary:hover{filter:brightness(1.1)}
+button.blue{background:var(--accent2);border-color:var(--accent2);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 9px;border-radius:6px;font-size:13px}
+input:focus,select:focus{outline:none;border-color:var(--accent2)}
+label.f{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.objlist{max-height:230px;overflow:auto;display:flex;flex-direction:column;gap:4px}
+.objitem{padding:7px 9px;border-radius:6px;border:1px solid transparent;cursor:pointer;display:flex;justify-content:space-between;gap:6px;align-items:center}
+.objitem:hover{background:var(--panel2)}
+.objitem.sel{background:#3b2f1d;border-color:var(--accent)}
+.objitem .code{font-family:var(--mono);font-size:11px;color:var(--accent2)}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.kv{display:flex;justify-content:space-between;font-size:12px}.kv b{color:var(--muted);font-weight:500}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+#code-preview{font-family:var(--mono);font-size:30px;letter-spacing:3px;text-align:center;background:var(--bg);border:2px dashed var(--border);border-radius:10px;padding:14px;color:var(--accent)}
+#code-preview.valid{border-color:var(--ok);color:#fdba74}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.ok{background:#14532d;color:#86efac}.badge.err{background:#7f1d1d;color:#fecaca}
+.readable{text-align:center;font-size:12.5px;color:var(--muted)}
+.tabs{display:flex;gap:6px}
+.tab{flex:1;text-align:center;padding:7px;border-radius:7px;background:var(--bg);border:1px solid var(--border);cursor:pointer;font-size:12px}
+.tab.active{background:var(--accent2);border-color:var(--accent2);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{color:var(--muted);text-align:left;padding:6px;border-bottom:1px solid var(--border);font-weight:500}
+td{padding:6px;border-bottom:1px solid #2f2f33;font-family:var(--mono)}
+tr.clickable{cursor:pointer}tr.clickable:hover td{background:var(--panel2)}
+#toast-wrap{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:99}
+.toast{padding:11px 16px;border-radius:8px;font-size:13px;max-width:360px;box-shadow:0 6px 20px rgba(0,0,0,.5);animation:in .2s}
+.toast.ok{background:#14532d;border:1px solid var(--ok)}
+.toast.err{background:#7f1d1d;border:1px solid var(--err)}
+@keyframes in{from{transform:translateY(12px);opacity:0}}
+.statrow{display:flex;gap:8px}
+.stat{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center}
+.stat .n{font-size:20px;font-weight:700;color:var(--accent)}
+.scroll{max-height:340px;overflow:auto}
+hr{border:none;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<header>
+  <h1>&#9881; Asset Pipeline</h1>
+  <span class="ver">Faz 1 &mdash; 11 Haneli Kodlama &amp; Veritabanı</span>
+  <div class="spacer"></div>
+  <span id="port-badge">http://127.0.0.1:8123</span>
+</header>
+
+<main>
+  <!-- ==================== SOL: CANLI SAHNE ==================== -->
+  <section class="col">
+    <h2><span class="led" id="led"></span> Canlı Blender Sahnesi</h2>
+    <div class="small" id="blend-name">Dosya: -</div>
+    <hr>
+    <h2>Mesh Objeler</h2>
+    <div class="objlist" id="obj-list"><div class="small">Sahne verisi bekleniyor...</div></div>
+    <hr>
+    <h2>Seçili Obje</h2>
+    <div class="card" id="sel-card">
+      <div class="kv"><b>Ad</b><span id="sel-name">-</span></div>
+      <div class="kv"><b>Polygon</b><span id="sel-poly">-</span></div>
+      <div class="kv"><b>Vertex</b><span id="sel-vert">-</span></div>
+      <div class="kv"><b>asset_code</b><span id="sel-code">-</span></div>
+      <div class="kv"><b>asset_uuid</b><span id="sel-uuid" style="font-size:10px">-</span></div>
+      <button id="btn-parse" title="Obje adı geçerli 11 haneli kodsaysa seçicileri doldurur">&#128260; Kodu Çözümle (Parse)</button>
+    </div>
+  </section>
+
+  <!-- ==================== ORTA: KOD ÜRETİCİ ==================== -->
+  <section class="col">
+    <h2>&#128273; 11 Haneli Dinamik Kod Üretici</h2>
+
+    <div>
+      <label class="f">Kategori Şablonu</label>
+      <select id="sel-category"></select>
+    </div>
+
+    <div class="row4" id="p-selectors"><!-- P1..P4 dinamik --></div>
+
+    <div class="tabs" id="mode-tabs">
+      <div class="tab active" data-mode="new">Yeni Model Başlat</div>
+      <div class="tab" data-mode="version">Mevcut Modele Versiyon Ekle</div>
+    </div>
+
+    <div class="row2">
+      <div id="wrap-existing" style="display:none">
+        <label class="f">Mevcut Model</label>
+        <select id="sel-existing-model"></select>
+      </div>
+      <div><label class="f">Model No (MM)</label><input type="number" id="inp-mm" min="1" max="99" value="1"></div>
+      <div><label class="f">Versiyon No (VV)</label><input type="number" id="inp-vv" min="1" max="99" value="1"></div>
+    </div>
+
+    <div id="code-preview">------ -----?--</div>
+    <div style="text-align:center"><span class="badge err" id="valid-badge">0 / 11 Karakter</span></div>
+    <div class="readable" id="readable">Parametreleri seçin.</div>
+
+    <button class="primary" id="btn-save" style="padding:13px">&#128230; BLENDER'DA İSMİ DEĞİŞTİR VE VERİTABANINA KAYDET</button>
+
+    <hr>
+    <h2>&#9881; Faz 2/3 Pipeline Modülleri</h2>
+    <div class="row2" style="grid-template-columns:1fr 1fr 1fr">
+      <button class="blue" data-module="mesh_repair">Açıkları Kapat (Repair)</button>
+      <button class="blue" data-module="decimate_poly">Poligon Düşür (Decimate)</button>
+      <button class="blue" data-module="bake_normal">Normal Map Bake</button>
+    </div>
+    <div class="small">Modüller seçili tek mesh obje üzerinde Blender ana thread'inde çalışır.</div>
+  </section>
+
+  <!-- ==================== SAĞ: KÜTÜPHANE ==================== -->
+  <section class="col">
+    <h2>&#128218; Veritabanı Kütüphanesi</h2>
+    <div class="statrow">
+      <div class="stat"><div class="n" id="stat-total">0</div><div class="small">Toplam Kayıt</div></div>
+      <div class="stat"><div class="n" id="stat-cat">0</div><div class="small">Kategoriler</div></div>
+    </div>
+    <div class="row2">
+      <select id="flt-category"><option value="">Tüm Kategoriler</option></select>
+      <input id="flt-search" placeholder="Kod / eski ad ara...">
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Tam Kod</th><th>Eski Ad</th><th>Poly</th><th>Tarih</th></tr></thead>
+        <tbody id="asset-rows"><tr><td colspan="4" class="small">Kayıt yok.</td></tr></tbody>
+      </table>
+    </div>
+    <button id="btn-refresh">&#8635; Yenile</button>
+  </section>
+</main>
+
+<div id="toast-wrap"></div>
+
+<script>
+"use strict";
+const API = ""; // ayni origin (sunucu sayfayi da sundugu icin) => CORS/fetch sorunu olmaz
+const state = { templates: [], category: null, mode: "new", suggest: null, scene: null, selectedName: null };
+
+const $ = (id) => document.getElementById(id);
+const pad2 = (n) => String(n).padStart(2, "0");
+
+function toast(msg, ok = true) {
+  const t = document.createElement("div");
+  t.className = "toast " + (ok ? "ok" : "err");
+  t.textContent = msg;
+  $("toast-wrap").appendChild(t);
+  setTimeout(() => t.remove(), 4200);
+}
+
+async function api(path, opts) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const r = await fetch(API + path, Object.assign({ signal: ctrl.signal }, opts || {}));
+    const j = await r.json();
+    if (!r.ok || j.status === "error") throw new Error(j.message || ("HTTP " + r.status));
+    return j;
+  } finally { clearTimeout(timer); }
+}
+
+/* ---------- Sol kolon: sahne ---------- */
+async function pollScene() {
+  try {
+    const s = await api("/api/scene");
+    state.scene = s;
+    $("led").classList.add("on");
+    $("blend-name").textContent = "Dosya: " + (s.blend_file && s.blend_file !== "(kaydedilmemis)" ? s.blend_file.split(/[\\/]/).pop() : "(kaydedilmemis)");
+    renderObjList(s.mesh_objects || []);
+    renderSelCard();
+  } catch (e) {
+    $("led").classList.remove("on");
+    $("blend-name").textContent = "Blender bağlantısı yok: " + e.message;
+  }
+}
+
+function renderObjList(objs) {
+  const el = $("obj-list");
+  if (!objs.length) { el.innerHTML = '<div class="small">Sahnede mesh obje yok.</div>'; return; }
+  el.innerHTML = "";
+  for (const o of objs) {
+    const d = document.createElement("div");
+    d.className = "objitem" + ((o.active || o.selected) ? " sel" : "");
+    d.innerHTML = "<span>" + esc(o.name) + "</span>" + (o.asset_code ? '<span class="code">' + esc(o.asset_code) + "</span>" : "");
+    d.onclick = async () => {
+      try {
+        await api("/api/select_object", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ object_name: o.name }) });
+        state.selectedName = o.name;
+        pollScene();
+      } catch (e) { toast("Secim hatasi: " + e.message, false); }
+    };
+    el.appendChild(d);
+  }
+}
+
+function currentSel() {
+  const objs = (state.scene && state.scene.mesh_objects) || [];
+  return objs.find(o => o.name === state.selectedName) || objs.find(o => o.active) || objs.find(o => o.selected) || null;
+}
+
+function renderSelCard() {
+  const o = currentSel();
+  $("sel-name").textContent = o ? o.name : "-";
+  $("sel-poly").textContent = o ? o.poly_count : "-";
+  $("sel-vert").textContent = o ? o.vertex_count : "-";
+  $("sel-code").textContent = o && o.asset_code ? o.asset_code : "-";
+  $("sel-uuid").textContent = o && o.asset_uuid ? o.asset_uuid : "-";
+}
+
+$("btn-parse").onclick = () => {
+  const o = currentSel();
+  if (!o) return toast("Once listedan bir obje secin.", false);
+  const code = parseCodeFromName(o.name);
+  if (!code) return toast("Obje adi gecerci 11 haneli kod degil.", false);
+  applyParsedToUI(code);
+};
+
+function parseCodeFromName(name) {
+  const m = /^([A-Z0-9]{2})([A-Z0-9])([A-Z0-9])([A-Z0-9])([A-Z0-9])2(\d{2})(\d{2})$/.exec((name || "").toUpperCase());
+  if (!m) return null;
+  return { cat: m[1], p1: m[2], p2: m[3], p3: m[4], p4: m[5], mm: parseInt(m[6], 10), vv: parseInt(m[7], 10) };
+}
+
+/* ---------- Orta kolon: sablonlar ve kod ---------- */
+async function loadTemplates() {
+  const r = await api("/api/templates");
+  state.templates = r.templates || [];
+  const sel = $("sel-category"), flt = $("flt-category");
+  sel.innerHTML = ""; flt.innerHTML = '<option value="">Tüm Kategoriler</option>';
+  for (const t of state.templates) {
+    sel.innerHTML += '<option value="' + t.category_code + '">' + esc(t.category_code) + " - " + esc(t.category_name) + "</option>";
+    flt.innerHTML += '<option value="' + t.category_code + '">' + esc(t.category_name) + "</option>";
+  }
+  if (state.templates[0]) { state.category = state.templates[0]; buildPSelectors(); refreshSuggest(); }
+}
+
+function tplByCat(code) { return state.templates.find(t => t.category_code === code) || null; }
+
+function buildPSelectors() {
+  const wrap = $("p-selectors");
+  wrap.innerHTML = "";
+  const schema = (state.category && state.category.schema) || {};
+  for (const key of ["P1", "P2", "P3", "P4"]) {
+    const g = schema[key] || { group: key, options: {} };
+    const div = document.createElement("div");
+    div.innerHTML = '<label class="f">' + esc(g.group) + " (" + key + ")</label>";
+    const s = document.createElement("select");
+    s.id = "sel-" + key.toLowerCase();
+    for (const [code, label] of Object.entries(g.options)) s.innerHTML += '<option value="' + code + '">' + code + " - " + esc(label) + "</option>";
+    s.onchange = onParamChange;
+    div.appendChild(s);
+    wrap.appendChild(div);
+  }
+}
+
+function prefix6() {
+  if (!state.category) return "";
+  const p = ["p1","p2","p3","p4"].map(k => { const e = $("sel-" + k); return e ? e.value : "?"; });
+  if (p.includes("?")) return "";
+  return state.category.category_code + p.join("");
+}
+
+function currentCodes() {
+  const e1 = $("sel-p1"), e2 = $("sel-p2"), e3 = $("sel-p3"), e4 = $("sel-p4");
+  if (!e1) return null;
+  return { p1: e1.value, p2: e2.value, p3: e3.value, p4: e4.value };
+}
+
+async function refreshSuggest() {
+  const pre = prefix6();
+  if (!pre) return;
+  try {
+    const r = await api("/api/suggest?prefix=" + pre);
+    state.suggest = r;
+    const ex = $("sel-existing-model");
+    ex.innerHTML = "";
+    for (const m of (r.existing_models || [])) ex.innerHTML += '<option value="' + m.model_no + '">Model ' + pad2(m.model_no) + " (son v" + pad2(m.last_version) + ")</option>";
+    $("wrap-existing").style.display = state.mode === "version" && (r.existing_models || []).length ? "" : "none";
+    if (state.mode === "new") { $("inp-mm").value = r.next_new_model; $("inp-vv").value = 1; }
+    else if ((r.existing_models || []).length) { syncVersionMode(); }
+    updatePreview();
+  } catch (e) { /* sessiz */ }
+}
+
+function syncVersionMode() {
+  const list = (state.suggest && state.suggest.existing_models) || [];
+  const mn = parseInt($("sel-existing-model").value || "0", 10);
+  const m = list.find(x => x.model_no === mn) || list[0];
+  if (m) { $("inp-mm").value = m.model_no; $("inp-vv").value = m.next_version; }
+}
+
+function onParamChange() { refreshSuggest(); }
+
+$("sel-category").onchange = () => {
+  state.category = tplByCat($("sel-category").value);
+  buildPSelectors();
+  refreshSuggest();
+};
+
+document.querySelectorAll("#mode-tabs .tab").forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll("#mode-tabs .tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    state.mode = tab.dataset.mode;
+    $("wrap-existing").style.display = state.mode === "version" ? "" : "none";
+    refreshSuggest();
+  };
+});
+$("sel-existing-model").onchange = () => { syncVersionMode(); updatePreview(); };
+$("inp-mm").oninput = updatePreview;
+$("inp-vv").oninput = updatePreview;
+
+function fullCode() {
+  const c = currentCodes();
+  if (!c || !state.category) return null;
+  const mm = parseInt($("inp-mm").value, 10), vv = parseInt($("inp-vv").value, 10);
+  if (!(mm >= 1 && mm <= 99) || !(vv >= 1 && vv <= 99)) return null;
+  return state.category.category_code + c.p1 + c.p2 + c.p3 + c.p4 + "2" + pad2(mm) + pad2(vv);
+}
+
+function readableText(code) {
+  if (!state.category) return "";
+  const sc = state.category.schema || {};
+  const lbl = (k, ch) => ((sc[k] && sc[k].options) || {})[ch] || ch;
+  return [state.category.category_name, lbl("P1", code[2]), lbl("P2", code[3]), lbl("P3", code[4]), lbl("P4", code[5]),
+          "Model " + code.slice(7, 9), "Versiyon " + code.slice(9, 11)].join(" \u2022 ");
+}
+
+function updatePreview() {
+  const code = fullCode();
+  const pv = $("code-preview"), badge = $("valid-badge");
+  if (!code) {
+    pv.textContent = "------ -----?--"; pv.classList.remove("valid");
+    badge.className = "badge err"; badge.textContent = "0 / 11 Karakter - GECERSIZ";
+    $("readable").textContent = "Eksik/gecersiz parametre."; return;
+  }
+  pv.textContent = code.slice(0, 6) + " " + code.slice(6);
+  pv.classList.add("valid");
+  badge.className = "badge ok"; badge.textContent = "11 / 11 Karakter - GECERLI";
+  $("readable").textContent = readableText(code);
+}
+
+function applyParsedToUI(code) {
+  const cat = tplByCat(code.cat);
+  if (!cat) return toast("Bu kategori sablonu veritabaninda yok: " + code.cat, false);
+  $("sel-category").value = cat.category_code;
+  state.category = cat; buildPSelectors();
+  $("sel-p1").value = code.p1; $("sel-p2").value = code.p2; $("sel-p3").value = code.p3; $("sel-p4").value = code.p4;
+  $("inp-mm").value = code.mm; $("inp-vv").value = code.vv;
+  refreshSuggest();
+  toast("Kod cozumlenip secicilere uygulandi: " + (code.cat + code.p1 + code.p2 + code.p3 + code.p4));
+}
+
+/* ---------- Kaydet ---------- */
+$("btn-save").onclick = async () => {
+  const code = fullCode();
+  if (!code) return toast("Gecersiz kod: parametreleri kontrol edin.", false);
+  const btn = $("btn-save"); btn.disabled = true;
+  try {
+    const c = currentCodes();
+    const body = {
+      full_code: code, category: state.category.category_code,
+      p1: c.p1, p2: c.p2, p3: c.p3, p4: c.p4,
+      model_no: parseInt($("inp-mm").value, 10), version_no: parseInt($("inp-vv").value, 10),
+    };
+    const r = await api("/api/apply_code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    toast("\u2705 " + (r.message || "Kaydedildi") + " -> " + code);
+    pollScene(); loadAssets();
+  } catch (e) {
+    toast("\u274c Kayit hatasi: " + e.message, false);
+  } finally { btn.disabled = false; }
+};
+
+/* ---------- Modul butonlari ---------- */
+document.querySelectorAll("[data-module]").forEach(b => {
+  b.onclick = async () => {
+    try {
+      const r = await api("/api/run_module", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ module_name: b.dataset.module, params: {} }) });
+      toast(r.message || "Modul tamamlandi", r.status !== "error");
+    } catch (e) { toast("Modul hatasi: " + e.message, false); }
+  };
+});
+
+/* ---------- Sag kolon: assetler ---------- */
+async function loadAssets() {
+  try {
+    const q = "/api/assets?category=" + encodeURIComponent($("flt-category").value) + "&search=" + encodeURIComponent($("flt-search").value.trim());
+    const r = await api(q);
+    $("stat-total").textContent = r.stats.total;
+    $("stat-cat").textContent = (r.stats.by_category || []).length;
+    const tb = $("asset-rows");
+    tb.innerHTML = "";
+    if (!r.assets.length) { tb.innerHTML = '<tr><td colspan="4" class="small">Kayit yok.</td></tr>'; return; }
+    for (const a of r.assets) {
+      const tr = document.createElement("tr");
+      tr.className = "clickable";
+      tr.innerHTML = "<td>" + esc(a.full_code) + "</td><td>" + esc(a.original_name || "-") + "</td><td>" + (a.poly_count ?? "-") + "</td><td>" + esc((a.created_at || "").slice(0, 16)) + "</td>";
+      tr.onclick = () => {
+        const code = parseCodeFromName(a.full_code);
+        if (code) applyParsedToUI(code);
+      };
+      tb.appendChild(tr);
+    }
+  } catch (e) { /* sunucu cevrimdisi */ }
+}
+$("flt-category").onchange = loadAssets;
+let searchT; $("flt-search").oninput = () => { clearTimeout(searchT); searchT = setTimeout(loadAssets, 300); };
+$("btn-refresh").onclick = () => { pollScene(); loadAssets(); };
+
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+/* ---------- Baslat ---------- */
+pollScene(); setInterval(pollScene, 800);
+loadTemplates().catch(e => toast("Sablonlar yuklenemedi: " + e.message, false));
+setInterval(loadAssets, 5000); loadAssets();
+</script>
+</body>
+</html>
