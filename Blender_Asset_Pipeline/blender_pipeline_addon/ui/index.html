@@ -1,0 +1,697 @@
+# ============================================================================
+# ui/index.html — Modern Koyu Temalı Tek Sayfa Web Arayüzü (HTML + CSS + JS)
+# Harici bağımlılık YOKTUR. Tüm veri 127.0.0.1:8123 REST API'sinden gelir.
+# ============================================================================
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blender Asset Pipeline — 11 Haneli Kodlama Sistemi</title>
+<style>
+/* ============================ RENK PALETİ (Blender Dark UI) ============== */
+:root{
+  --bg-main:#18181b; --bg-panel:#27272a; --bg-card:#3f3f46; --bg-input:#1c1c1f;
+  --accent-orange:#f97316; --accent-blue:#3b82f6;
+  --text-main:#e4e4e7; --text-dim:#a1a1aa; --text-faint:#71717a;
+  --ok:#22c55e; --err:#ef4444; --warn:#eab308;
+  --radius:10px; --border:1px solid #3f3f46;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  background:var(--bg-main); color:var(--text-main);
+  font-family:"Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size:14px; line-height:1.45;
+}
+::-webkit-scrollbar{width:9px;height:9px;} ::-webkit-scrollbar-thumb{background:#52525b;border-radius:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ============================ LAYOUT ==================================== */
+header{
+  display:flex; align-items:center; gap:14px; padding:14px 22px;
+  background:linear-gradient(90deg,#18181b 0%,#27272a 100%);
+  border-bottom:2px solid var(--accent-orange);
+}
+header .logo{
+  width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  background:var(--accent-orange);font-weight:800;font-size:18px;color:#18181b;
+}
+header h1{font-size:17px;font-weight:600;letter-spacing:.3px;}
+header .sub{color:var(--text-dim);font-size:12px;margin-top:2px;}
+header .spacer{flex:1;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--bg-card);color:var(--text-dim);}
+
+main{
+  display:grid; grid-template-columns:340px minmax(420px,1fr) 400px;
+  gap:16px; padding:16px 22px; max-width:1800px; margin:0 auto;
+  align-items:start;
+}
+@media(max-width:1280px){ main{grid-template-columns:1fr 1fr;} }
+@media(max-width:900px){ main{grid-template-columns:1fr;} }
+
+.panel{
+  background:var(--bg-panel); border:var(--border); border-radius:var(--radius);
+  padding:16px; display:flex; flex-direction:column; gap:12px;
+}
+.panel h2{
+  font-size:13px; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-dim);
+  display:flex; align-items:center; gap:8px; padding-bottom:8px; border-bottom:var(--border);
+}
+.panel h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent-orange);}
+
+/* ============================ BİLEŞENLER ================================ */
+.card{background:var(--bg-card);border-radius:8px;padding:12px;}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.grow{flex:1;}
+
+.led{width:11px;height:11px;border-radius:50%;display:inline-block;flex:none;}
+.led.on{background:var(--ok);box-shadow:0 0 8px var(--ok);}
+.led.off{background:var(--err);box-shadow:0 0 8px var(--err);}
+
+button{
+  background:var(--bg-card); color:var(--text-main); border:var(--border);
+  padding:8px 14px; border-radius:7px; cursor:pointer; font-size:13px;
+  transition:all .15s ease; font-family:inherit;
+}
+button:hover{border-color:var(--accent-blue);background:#4a4a52;}
+button:active{transform:translateY(1px);}
+button.primary{background:var(--accent-blue);border-color:var(--accent-blue);color:#fff;font-weight:600;}
+button.primary:hover{background:#2563eb;}
+button.big-cta{
+  background:linear-gradient(135deg,var(--accent-orange),#ea580c);
+  border:none;color:#fff;font-weight:700;font-size:14px;padding:13px 16px;width:100%;
+  letter-spacing:.4px;border-radius:8px;
+}
+button.big-cta:hover{filter:brightness(1.12);}
+button.module-btn{width:100%;text-align:left;padding:10px 12px;}
+button:disabled{opacity:.45;cursor:not-allowed;}
+
+select,input[type=text],input[type=number]{
+  background:var(--bg-input); color:var(--text-main); border:var(--border);
+  padding:8px 10px; border-radius:7px; font-size:13px; width:100%; font-family:inherit;
+}
+select:focus,input:focus{outline:2px solid var(--accent-blue);border-color:transparent;}
+label.field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--text-dim);}
+
+.list{display:flex;flex-direction:column;gap:4px;max-height:230px;overflow-y:auto;}
+.list-item{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;
+  background:var(--bg-input);border:1px solid transparent;cursor:pointer;transition:all .12s;
+}
+.list-item:hover{border-color:var(--accent-blue);}
+.list-item.active{border-color:var(--accent-orange);background:#33210f;}
+.list-item .mono{font-family:Consolas,Menlo,monospace;font-size:12px;}
+.list-item .meta{margin-left:auto;color:var(--text-faint);font-size:11px;white-space:nowrap;}
+.tag{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--accent-blue);color:#fff;}
+.tag.orange{background:var(--accent-orange);color:#18181b;}
+
+.kv{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;}
+.kv .k{color:var(--text-dim);} .kv .v{font-family:Consolas,Menlo,monospace;text-align:right;max-width:60%;word-break:break-all;}
+
+/* Kod önizleme kartı */
+.code-preview{
+  font-family:Consolas,Menlo,"Courier New",monospace;
+  font-size:34px;font-weight:700;letter-spacing:3px;text-align:center;
+  background:var(--bg-input);border:2px dashed var(--accent-orange);
+  padding:18px 10px;border-radius:10px;color:#fff;
+}
+.validity{display:flex;justify-content:center;margin-top:-6px;}
+.pill{font-size:11px;padding:4px 12px;border-radius:20px;font-weight:700;}
+.pill.ok{background:rgba(34,197,94,.15);color:var(--ok);border:1px solid var(--ok);}
+.pill.bad{background:rgba(239,68,68,.15);color:var(--err);border:1px solid var(--err);}
+.readout{text-align:center;color:var(--text-dim);font-size:12.5px;padding:8px 6px;line-height:1.7;}
+.readout b{color:var(--text-main);font-weight:600;}
+
+/* Mod / radyo */
+.mode-box{display:flex;flex-direction:column;gap:6px;}
+.mode-opt{display:flex;gap:8px;align-items:center;background:var(--bg-input);padding:8px 10px;border-radius:7px;border:1px solid transparent;cursor:pointer;}
+.mode-opt.sel{border-color:var(--accent-blue);}
+.mode-opt input{accent-color:var(--accent-orange);}
+
+/* Tablo */
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{color:var(--text-faint);text-transform:uppercase;font-size:10.5px;letter-spacing:.8px;text-align:left;padding:6px 8px;border-bottom:var(--border);position:sticky;top:0;background:var(--bg-panel);}
+td{padding:7px 8px;border-bottom:1px solid #333338;vertical-align:top;}
+tr.clickable{cursor:pointer;} tr.clickable:hover{background:#333338;}
+td.mono{font-family:Consolas,Menlo,monospace;color:var(--accent-orange);font-weight:600;}
+.tbl-wrap{max-height:340px;overflow-y:auto;}
+
+/* Toast */
+#toasts{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:99;}
+.toast{padding:12px 16px;border-radius:8px;font-size:13px;min-width:260px;max-width:380px;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);animation:slideIn .25s ease;border-left:4px solid;}
+.toast.success{background:#14351f;border-left-color:var(--ok);}
+.toast.error{background:#3b1212;border-left-color:var(--err);}
+.toast.info{background:#12233b;border-left-color:var(--accent-blue);}
+@keyframes slideIn{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+
+.section-note{font-size:11px;color:var(--text-faint);}
+.hidden{display:none!important;}
+h3.sub-h{font-size:12px;color:var(--accent-blue);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AP</div>
+  <div>
+    <h1>Blender Asset Pipeline <span style="color:var(--accent-orange)">Faz 1</span></h1>
+    <div class="sub">11 Haneli Kodlama • SQLite Kayıt • localhost:8123 REST API</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="badge" id="hdr-blend">Dosya: —</div>
+  <div class="badge"><span class="led off" id="hdr-led"></span>&nbsp;<span id="hdr-status">Bağlanıyor…</span></div>
+</header>
+
+<main>
+<!-- ==================== SOL SÜTUN : CANLI BLENDER SAHNESİ =============== -->
+<section class="panel" id="col-left">
+  <h2><span class="dot"></span>Canlı Blender Sahnesi</h2>
+
+  <div class="card">
+    <div class="row">
+      <span class="led off" id="conn-led"></span>
+      <b id="conn-text">Bağlantı bekleniyor…</b>
+    </div>
+    <div class="kv" style="margin-top:6px"><span class="k">Açık .blend dosyası</span><span class="v" id="scene-file">—</span></div>
+    <div class="kv"><span class="k">Toplam mesh</span><span class="v" id="scene-count">0</span></div>
+  </div>
+
+  <h3 class="sub-h">Sahnedeki Mesh Objeleri</h3>
+  <div class="list" id="obj-list">
+    <div class="section-note">Blender'da obje bulunamadı veya bağlantı yok.</div>
+  </div>
+
+  <h3 class="sub-h">Seçili Obje Bilgi Kartı</h3>
+  <div class="card" id="sel-card">
+    <div class="kv"><span class="k">Mevcut ad</span><span class="v" id="sel-name">—</span></div>
+    <div class="kv"><span class="k">Poligon sayısı</span><span class="v" id="sel-polys">—</span></div>
+    <div class="kv"><span class="k">Vertex sayısı</span><span class="v" id="sel-verts">—</span></div>
+    <div class="kv"><span class="k">asset_code</span><span class="v" id="sel-code">—</span></div>
+    <div class="kv"><span class="k">asset_uuid</span><span class="v" id="sel-uuid">—</span></div>
+    <div class="row" style="margin-top:8px">
+      <button id="btn-parse" class="grow" title="11 haneli geçerli bir kodsa seçicileri doldurur">Kodu Çözümle (Parse)</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ORTA SÜTUN : 11 HANELİ DİNAMİK KOD ÜRETİCİ ============== -->
+<section class="panel" id="col-mid">
+  <h2><span class="dot" style="background:var(--accent-blue)"></span>Kod Üretici &amp; Pipeline Modülleri</h2>
+
+  <label class="field">Kategori Şablonu
+    <select id="sel-category"></select>
+  </label>
+
+  <div class="row" id="param-row">
+    <label class="field grow">P1 — <span id="lbl-p1">Parametre 1</span>
+      <select id="sel-p1"></select></label>
+    <label class="field grow">P2 — <span id="lbl-p2">Parametre 2</span>
+      <select id="sel-p2"></select></label>
+    <label class="field grow">P3 — <span id="lbl-p3">Parametre 3</span>
+      <select id="sel-p3"></select></label>
+    <label class="field grow">P4 — <span id="lbl-p4">Parametre 4</span>
+      <select id="sel-p4"></select></label>
+  </div>
+
+  <h3 class="sub-h">Numaralandırma (2MMVV)</h3>
+  <div class="mode-box">
+    <label class="mode-opt sel" id="opt-new">
+      <input type="radio" name="num-mode" value="new" checked>
+      <span><b>Yeni Model Başlat</b><br><span class="section-note">Sıradaki boş model no (MM) ve VV=01 otomatik seçilir</span></span>
+    </label>
+    <label class="mode-opt" id="opt-ver">
+      <input type="radio" name="num-mode" value="version">
+      <span><b>Mevcut Modele Versiyon Ekle</b><br><span class="section-note">Önceki modellerden birinin sıradaki versiyonu</span></span>
+    </label>
+  </div>
+  <div class="row hidden" id="model-pick-row">
+    <label class="field grow">Model Seç
+      <select id="sel-existing-model"></select></label>
+  </div>
+  <div class="row">
+    <label class="field grow">MM (Model No)<input type="number" id="in-mm" min="1" max="99" value="1"></label>
+    <label class="field grow">VV (Versiyon No)<input type="number" id="in-vv" min="1" max="99" value="1"></label>
+    <div style="align-self:flex-end"><span class="tag orange" id="suggest-info">öneri yükleniyor…</span></div>
+  </div>
+
+  <h3 class="sub-h">Canlı Kod Önizleme</h3>
+  <div class="code-preview" id="code-preview">AY----2-----</div>
+  <div class="validity"><span class="pill bad" id="validity-pill">— / 11 Karakter</span></div>
+  <div class="readout" id="code-readout">Parametreleri seçin…</div>
+
+  <button class="big-cta" id="btn-apply">⚡ BLENDER'DA İSMİ DEĞİŞTİR VE VERİTABANINA KAYDET</button>
+
+  <h3 class="sub-h" style="margin-top:8px">Faz 2 / 3 — Pipeline Modülleri</h3>
+  <div class="row" id="module-buttons">
+    <button class="module-btn grow" data-module="mesh_repair">🛠 Açıkları Kapat (Repair)</button>
+    <button class="module-btn grow" data-module="decimate_poly">📉 Poligon Düşür (Decimate)</button>
+    <button class="module-btn grow" data-module="bake_normal">🧵 Normal Map Bake</button>
+  </div>
+  <div class="section-note">Modüller seçili obje üzerinde Blender ana thread'inde çalışır. Faz 2/3 implementasyonları modules/base_module.py içine eklenecektir.</div>
+</section>
+
+<!-- ============== SAĞ SÜTUN : VERİTABANI KÜTÜPHANESİ =================== -->
+<section class="panel" id="col-right">
+  <h2><span class="dot" style="background:var(--ok)"></span>Veritabanı Kütüphanesi</h2>
+
+  <div class="card row" style="justify-content:space-between">
+    <div><div class="section-note">Toplam kayıtlı model</div><div style="font-size:24px;font-weight:800" id="stat-total">0</div></div>
+    <div style="text-align:right"><div class="section-note">Kategori sayısı</div><div style="font-size:24px;font-weight:800" id="stat-cats">0</div></div>
+  </div>
+
+  <div class="row">
+    <select id="flt-category" class="grow"><option value="">Tüm Kategoriler</option></select>
+    <input type="text" id="flt-search" placeholder="Kod / eski ad ara…" class="grow">
+    <button id="btn-refresh-assets">↻</button>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Tam Kod</th><th>Eski Ad</th><th>Poly</th><th>Tarih</th></tr></thead>
+      <tbody id="asset-tbody">
+        <tr><td colspan="4" class="section-note">Kayıt yok.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-note">Tablodaki bir satıra tıklayın → Blender'da ilgili objeyi seçmeye çalışır.</div>
+</section>
+</main>
+
+<div id="toasts"></div>
+
+<script>
+"use strict";
+/* ======================================================================= */
+/*  Durum & Yardımcılar                                                     */
+/* ======================================================================= */
+const API = ""; // aynı origin (sunucu bu sayfayı zaten 8123'ten sunuyor)
+let templates = [];            // db şablonları
+let currentTemplate = null;    // seçili kategori şablonu
+let sceneState = {};           // blender sahne anlık durumu
+let suggestData = null;        // son /api/suggest yanıtı
+let numMode = "new";           // 'new' | 'version'
+let suggestTimer = null;
+
+const $ = (id) => document.getElementById(id);
+
+function toast(msg, type = "info") {
+  const t = document.createElement("div");
+  t.className = "toast " + type;
+  t.textContent = msg;
+  $("toasts").appendChild(t);
+  setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .4s"; }, 3600);
+  setTimeout(() => t.remove(), 4100);
+}
+
+async function apiGet(path) {
+  const res = await fetch(API + path, { headers: { "Accept": "application/json" } });
+  return await res.json();
+}
+async function apiPost(path, body) {
+  const res = await fetch(API + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body || {}),
+  });
+  return await res.json();
+}
+
+/* ======================================================================= */
+/*  1) CANLI SAHNE — her 800 ms'de /api/scene                               */
+/* ======================================================================= */
+async function pollScene() {
+  try {
+    const data = await apiGet("/api/scene");
+    if (data.status === "success") {
+      sceneState = data.scene || {};
+      setConnection(true);
+      renderScene();
+    } else {
+      setConnection(false, data.message || "Blender bağlı değil");
+    }
+  } catch (e) {
+    setConnection(false, "Sunucuya ulaşılamıyor (:8123)");
+  }
+}
+
+function setConnection(ok, msg) {
+  $("conn-led").className = "led " + (ok ? "on" : "off");
+  $("hdr-led").className = "led " + (ok ? "on" : "off");
+  $("conn-text").textContent = ok ? "CANLI BAĞLANTI — Blender izleniyor" : (msg || "Bağlantı yok");
+  $("hdr-status").textContent = ok ? "Bağlı" : "Bağlantısız";
+}
+
+function renderScene() {
+  $("scene-file").textContent = sceneState.blend_file_name || "—";
+  $("hdr-blend").textContent = "Dosya: " + (sceneState.blend_file_name || "—");
+  const meshes = sceneState.mesh_objects || [];
+  $("scene-count").textContent = meshes.length;
+
+  const list = $("obj-list");
+  list.innerHTML = "";
+  if (!meshes.length) {
+    list.innerHTML = '<div class="section-note">Sahnede mesh obje yok.</div>';
+  }
+  meshes.forEach((m) => {
+    const div = document.createElement("div");
+    div.className = "list-item" + (m.is_active ? " active" : "");
+    div.innerHTML = `
+      <span class="mono">${escapeHtml(m.name)}</span>
+      ${m.asset_code ? `<span class="tag">${escapeHtml(m.asset_code)}</span>` : ""}
+      <span class="meta">${m.poly_count.toLocaleString("tr-TR")} poly</span>`;
+    div.onclick = () => selectObject(m.name);
+    list.appendChild(div);
+  });
+
+  const active = meshes.find((m) => m.is_active) || null;
+  $("sel-name").textContent = active ? active.name : "—";
+  $("sel-polys").textContent = active ? active.poly_count.toLocaleString("tr-TR") : "—";
+  $("sel-verts").textContent = active ? active.vertex_count.toLocaleString("tr-TR") : "—";
+  $("sel-code").textContent = (active && active.asset_code) ? active.asset_code : "—";
+  $("sel-uuid").textContent = (active && active.asset_uuid) ? shortenUuid(active.asset_uuid) : "—";
+  updateParseButton(active);
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function shortenUuid(u) { return u.length > 14 ? u.slice(0, 8) + "…" + u.slice(-4) : u; }
+
+async function selectObject(name) {
+  const r = await apiPost("/api/select_object", { object_name: name });
+  if (r.status === "success") { pollScene(); } else { toast(r.message, "error"); }
+}
+
+/* ---- Parse: aktif objenin adı/geçerli 11 hane kodu ise seçicileri doldur */
+function isValidCodeFormat(code) {
+  return /^[A-Z0-9]{2}[A-Z0-9]{4}2\d{4}$/.test(code);
+}
+
+function updateParseButton(activeObj) {
+  const btn = $("btn-parse");
+  let code = null;
+  if (activeObj) {
+    if (activeObj.asset_code && isValidCodeFormat(activeObj.asset_code)) code = activeObj.asset_code;
+    else if (isValidCodeFormat(activeObj.name)) code = activeObj.name;
+  }
+  btn.disabled = !code;
+  btn.dataset.code = code || "";
+  btn.title = code ? `Çözümlenecek kod: ${code}` : "Seçili objede 11 haneli geçerli kod yok";
+}
+
+$("btn-parse").onclick = () => {
+  const code = $("btn-parse").dataset.code;
+  if (!code || !isValidCodeFormat(code)) { toast("Geçerli 11 haneli kod bulunamadı.", "error"); return; }
+  const cat = code.slice(0, 2);
+  const tpl = templates.find((t) => t.category_code === cat);
+  if (!tpl) { toast(`'${cat}' kategorisi şablonlarda bulunamadı.`, "error"); return; }
+  $("sel-category").value = cat;
+  currentTemplate = tpl;
+  buildParamSelects();
+  ["p1", "p2", "p3", "p4"].forEach((p, i) => { $("sel-" + p).value = code[2 + i]; });
+  const mm = parseInt(code.slice(7, 9), 10);
+  const vv = parseInt(code.slice(9, 11), 10);
+  setMode("version");
+  refreshSuggest().then(() => {
+    const opt = [...$("sel-existing-model").options].find((o) => +o.value === mm);
+    if (opt) $("sel-existing-model").value = String(mm);
+    $("in-mm").value = mm;
+    $("in-vv").value = vv;
+    updatePreview();
+    toast(`Kod çözümlendi: ${code}`, "success");
+  });
+};
+
+/* ======================================================================= */
+/*  2) ŞABLONLAR & KOD ÜRETİCİ                                              */
+/* ======================================================================= */
+async function loadTemplates() {
+  const data = await apiGet("/api/templates");
+  if (data.status !== "success") { toast("Şablonlar yüklenemedi: " + data.message, "error"); return; }
+  templates = data.templates || [];
+  const sel = $("sel-category");
+  sel.innerHTML = "";
+  templates.forEach((t) => {
+    const o = document.createElement("option");
+    o.value = t.category_code;
+    o.textContent = `${t.category_code} — ${t.category_name}`;
+    sel.appendChild(o);
+  });
+  // Filtre kutusunu da doldur
+  const flt = $("flt-category");
+  const cur = flt.value;
+  flt.innerHTML = '<option value="">Tüm Kategoriler</option>';
+  templates.forEach((t) => {
+    const o = document.createElement("option");
+    o.value = t.category_code; o.textContent = `${t.category_code} (${t.category_name})`;
+    flt.appendChild(o);
+  });
+  flt.value = cur;
+  $("stat-cats").textContent = templates.length;
+  if (templates.length) { sel.value = templates[0].category_code; onCategoryChange(); }
+}
+
+function onCategoryChange() {
+  const code = $("sel-category").value;
+  currentTemplate = templates.find((t) => t.category_code === code) || null;
+  buildParamSelects();
+  refreshSuggest();
+}
+
+function buildParamSelects() {
+  for (let i = 1; i <= 4; i++) {
+    const sel = $("sel-p" + i);
+    const lbl = $("lbl-p" + i);
+    sel.innerHTML = "";
+    if (!currentTemplate) { lbl.textContent = "Parametre " + i; continue; }
+    const grp = (currentTemplate.schema || {})["P" + i] || {};
+    lbl.textContent = grp.group_name || ("Parametre " + i);
+    Object.entries(grp.options || {}).forEach(([k, v]) => {
+      const o = document.createElement("option");
+      o.value = k; o.textContent = `${k} — ${v}`;
+      sel.appendChild(o);
+    });
+    sel.onchange = onParamsChanged;
+  }
+}
+
+function getPrefix() {
+  if (!currentTemplate) return "";
+  return currentTemplate.category_code + ($("sel-p1").value || "") + ($("sel-p2").value || "")
+       + ($("sel-p3").value || "") + ($("sel-p4").value || "");
+}
+
+async function onParamsChanged() { await refreshSuggest(); updatePreview(); }
+
+async function refreshSuggest() {
+  const prefix = getPrefix();
+  if (prefix.length !== 6) return;
+  try {
+    const data = await apiGet("/api/suggest?prefix=" + encodeURIComponent(prefix));
+    if (data.status !== "success") return;
+    suggestData = data;
+    const models = data.existing_models || [];
+    const pick = $("sel-existing-model");
+    pick.innerHTML = "";
+    models.forEach((m) => {
+      const o = document.createElement("option");
+      o.value = String(m.model_no);
+      o.textContent = `Model ${pad2(m.model_no)} (son v${pad2(m.latest_version)} → yeni v${pad2(m.next_version)})`;
+      pick.appendChild(o);
+    });
+    $("suggest-info").textContent = models.length
+      ? `${models.length} mevcut model • öneri MM=${pad2(data.next_new_model)}`
+      : "Bu önekte kayıt yok • MM=01, VV=01";
+    applySuggestionToInputs();
+    updatePreview();
+  } catch (e) { /* sunucu henüz hazır olmayabilir */ }
+}
+
+function applySuggestionToInputs() {
+  if (!suggestData) return;
+  if (numMode === "new") {
+    $("in-mm").value = suggestData.next_new_model;
+    $("in-vv").value = 1;
+  } else {
+    const models = suggestData.existing_models || [];
+    if (models.length) {
+      const chosen = models.find((m) => String(m.model_no) === $("sel-existing-model").value) || models[models.length - 1];
+      $("in-mm").value = chosen.model_no;
+      $("in-vv").value = chosen.next_version;
+    } else {
+      $("in-mm").value = suggestData.next_new_model;
+      $("in-vv").value = 1;
+    }
+  }
+}
+
+function pad2(n) { return String(Math.max(0, Math.min(99, parseInt(n || 0, 10) || 0))).padStart(2, "0"); }
+
+function setMode(mode) {
+  numMode = mode;
+  $("opt-new").classList.toggle("sel", mode === "new");
+  $("opt-ver").classList.toggle("sel", mode === "version");
+  $("model-pick-row").classList.toggle("hidden", mode !== "version");
+  applySuggestionToInputs();
+  updatePreview();
+}
+document.querySelectorAll('input[name="num-mode"]').forEach((r) => {
+  r.addEventListener("change", () => setMode(r.value));
+});
+$("sel-existing-model").addEventListener("change", () => { applySuggestionToInputs(); updatePreview(); });
+$("in-mm").addEventListener("input", schedulePreview);
+$("in-vv").addEventListener("input", schedulePreview);
+
+function schedulePreview() { clearTimeout(suggestTimer); suggestTimer = setTimeout(updatePreview, 150); }
+
+function buildFullCode() {
+  if (!currentTemplate) return "";
+  const mm = pad2($("in-mm").value);
+  const vv = pad2($("in-vv").value);
+  const p = [$("sel-p1").value, $("sel-p2").value, $("sel-p3").value, $("sel-p4").value];
+  if (p.some((x) => !x)) return "";
+  return currentTemplate.category_code + p.join("") + "2" + mm + vv;
+}
+
+function optionLabel(groupKey, code) {
+  const grp = ((currentTemplate || {}).schema || {})[groupKey] || {};
+  return (grp.options || {})[code] || code;
+}
+
+function updatePreview() {
+  const code = buildFullCode();
+  $("code-preview").textContent = code || "— — — — — — — — — — —";
+  const pill = $("validity-pill");
+  if (code.length === 11 && isValidCodeFormat(code)) {
+    pill.className = "pill ok"; pill.textContent = "11 / 11 Karakter — GEÇERLİ ✓";
+    $("btn-apply").disabled = false;
+  } else {
+    pill.className = "pill bad"; pill.textContent = `${code.length} / 11 Karakter` + (code ? " — GEÇERSİZ ✗" : " — eksik parametre");
+    $("btn-apply").disabled = true;
+  }
+  if (code.length === 11 && currentTemplate) {
+    $("code-readout").innerHTML =
+      `<b>${currentTemplate.category_name}</b> • ${optionLabel("P1", code[2])} • ${optionLabel("P2", code[3])} • ` +
+      `${optionLabel("P3", code[4])} • ${optionLabel("P4", code[5])} • Model <b>${code.slice(7, 9)}</b> • Versiyon <b>${code.slice(9, 11)}</b>`;
+  } else {
+    $("code-readout").textContent = "Parametreleri seçin…";
+  }
+}
+
+/* ======================================================================= */
+/*  3) KOD UYGULA (apply_code)                                              */
+/* ======================================================================= */
+$("btn-apply").onclick = async () => {
+  const code = buildFullCode();
+  if (code.length !== 11 || !isValidCodeFormat(code)) { toast("Kod geçersiz, önce parametreleri tamamlayın.", "error"); return; }
+  const activeMesh = (sceneState.mesh_objects || []).find((m) => m.is_active);
+  if (!activeMesh) { toast("Blender'da aktif/seçili tek bir mesh obje yok!", "error"); return; }
+
+  $("btn-apply").disabled = true;
+  try {
+    const r = await apiPost("/api/apply_code", {
+      full_code: code,
+      category: currentTemplate.category_code,
+      p1: code[2], p2: code[3], p3: code[4], p4: code[5],
+      model_no: parseInt(code.slice(7, 9), 10),
+      version_no: parseInt(code.slice(9, 11), 10),
+      asset_uuid: activeMesh.asset_uuid || null,
+    });
+    if (r.status === "success") {
+      toast(`✔ '${code}' uygulandı (${r.action === "updated" ? "kayıt güncellendi" : "yeni kayıt oluşturuldu"}).`, "success");
+      await Promise.all([pollScene(), loadAssets()]);
+      refreshSuggest();
+    } else {
+      toast("✖ " + (r.message || "Uygulanamadı"), "error");
+    }
+  } catch (e) {
+    toast("İstek gönderilemedi: " + e, "error");
+  } finally {
+    $("btn-apply").disabled = false;
+    updatePreview();
+  }
+};
+
+/* ======================================================================= */
+/*  4) MODÜL BUTONLARI                                                      */
+/* ======================================================================= */
+document.querySelectorAll("#module-buttons .module-btn").forEach((btn) => {
+  btn.onclick = async () => {
+    btn.disabled = true;
+    try {
+      const r = await apiPost("/api/run_module", { module_name: btn.dataset.module, params: {} });
+      toast(`${btn.textContent.trim()} → ${r.status === "success" ? "✔ " : "✖ "}${r.message}`,
+            r.status === "success" ? "success" : "error");
+      if (r.status === "success") pollScene();
+    } catch (e) {
+      toast("Modül hatası: " + e, "error");
+    } finally { btn.disabled = false; }
+  };
+});
+
+/* ======================================================================= */
+/*  5) SAĞ SÜTUN — KÜTÜPHANE                                               */
+/* ======================================================================= */
+async function loadAssets() {
+  const cat = $("flt-category").value;
+  const q = $("flt-search").value.trim();
+  const params = new URLSearchParams();
+  if (cat) params.set("category", cat);
+  if (q) params.set("search", q);
+  try {
+    const data = await apiGet("/api/assets?" + params.toString());
+    if (data.status !== "success") return;
+    $("stat-total").textContent = data.total ?? (data.assets || []).length;
+    const tbody = $("asset-tbody");
+    tbody.innerHTML = "";
+    const assets = data.assets || [];
+    if (!assets.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="section-note">Kayıt yok.</td></tr>';
+      return;
+    }
+    assets.forEach((a) => {
+      const tr = document.createElement("tr");
+      tr.className = "clickable";
+      tr.innerHTML = `<td class="mono">${escapeHtml(a.full_code)}</td>
+                      <td>${escapeHtml(a.original_name || "—")}</td>
+                      <td>${(a.poly_count ?? 0).toLocaleString("tr-TR")}</td>
+                      <td style="color:var(--text-faint);white-space:nowrap">${formatDate(a.created_at)}</td>`;
+      tr.title = "Blender'da bu objeyi seç (tam kod adına göre)";
+      tr.onclick = () => selectObject(a.full_code);
+      tbody.appendChild(tr);
+    });
+  } catch (e) { /* yoksay */ }
+}
+
+function formatDate(s) {
+  if (!s) return "—";
+  try {
+    const d = new Date(String(s).replace(" ", "T") + (String(s).endsWith("Z") || s.includes("+") ? "" : "Z"));
+    if (isNaN(d)) return s;
+    return d.toLocaleDateString("tr-TR") + " " + d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+  } catch (e) { return s; }
+}
+
+$("btn-refresh-assets").onclick = loadAssets;
+$("flt-category").onchange = loadAssets;
+let searchTimer = null;
+$("flt-search").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(loadAssets, 300); });
+
+/* ======================================================================= */
+/*  BAŞLATMA                                                                */
+/* ======================================================================= */
+$("sel-category").addEventListener("change", onCategoryChange);
+
+(async function init() {
+  await loadTemplates();
+  await loadAssets();
+  await pollScene();
+  setInterval(pollScene, 800);          // canlı sahne — 800 ms
+  setInterval(loadAssets, 5000);        // kütüphane periyodik tazeleme
+})();
+</script>
+</body>
+</html>
